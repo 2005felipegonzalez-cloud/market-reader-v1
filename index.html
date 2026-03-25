@@ -1,755 +1,696 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Market Intel — Live Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Market Intelligence Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #07080b;
-  --bg2:       #0d0f14;
-  --bg3:       #131720;
-  --bg4:       #1a2030;
-  --line:      rgba(255,255,255,0.05);
-  --line2:     rgba(255,255,255,0.10);
-  --line3:     rgba(255,255,255,0.18);
-  --ink:       #dde3ef;
-  --ink2:      #6b7a94;
-  --ink3:      #35404f;
-  --earn:      #00e5a0;
-  --earn-d:    rgba(0,229,160,0.10);
-  --geo:       #ff5252;
-  --geo-d:     rgba(255,82,82,0.10);
-  --crypto:    #ffb300;
-  --crypto-d:  rgba(255,179,0,0.10);
-  --google:    #4285f4;
-  --google-d:  rgba(66,133,244,0.10);
-  --mono: 'JetBrains Mono', monospace;
-  --display: 'Bebas Neue', sans-serif;
-  --body: 'DM Sans', sans-serif;
+  --bg:       #080a0e;
+  --bg2:      #0f1218;
+  --bg3:      #161b24;
+  --bg4:      #1c2330;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #e8edf5;
+  --text2:    #7a8799;
+  --text3:    #3d4a5c;
+  --green:    #00d47e;
+  --green-bg: rgba(0,212,126,0.08);
+  --red:      #ff4d4d;
+  --red-bg:   rgba(255,77,77,0.08);
+  --amber:    #ffb800;
+  --amber-bg: rgba(255,184,0,0.08);
+  --blue:     #4d9fff;
+  --blue-bg:  rgba(77,159,255,0.08);
+  --purple:   #b57bff;
+  --purple-bg:rgba(181,123,255,0.08);
+  --cyan:     #00d4ff;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
 }
 
 body {
-  font-family: var(--body);
+  font-family: var(--sans);
   background: var(--bg);
-  color: var(--ink);
+  color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
+  line-height: 1.5;
 }
 
-/* ── NOISE TEXTURE OVERLAY ── */
-body::before {
-  content:'';
-  position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  opacity: 0.4;
+/* ── SETUP SCREEN ── */
+#setup-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
 }
-
-/* ── SETUP ── */
-#setup {
-  position:fixed; inset:0; z-index:200;
-  display:flex; align-items:center; justify-content:center;
-  background: var(--bg);
-  padding: 1.5rem;
+.setup-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 2.5rem;
 }
-.setup-wrap {
-  width:100%; max-width:460px;
-}
-.setup-eyebrow {
-  font-family: var(--mono);
-  font-size: 11px; letter-spacing: 0.18em; color: var(--google);
-  margin-bottom: 1.5rem; text-transform: uppercase;
-  display: flex; align-items: center; gap: 8px;
-}
-.setup-eyebrow::before {
-  content:'';
-  display:inline-block; width:28px; height:1px; background: var(--google);
-}
-.setup-wrap h1 {
-  font-family: var(--display);
-  font-size: clamp(42px, 8vw, 64px);
-  line-height: 0.95; letter-spacing: 0.02em;
-  color: var(--ink); margin-bottom: 1rem;
-}
-.setup-wrap h1 span { color: var(--google); }
-.setup-desc {
-  font-size: 14px; color: var(--ink2); line-height: 1.65;
-  margin-bottom: 2rem; border-left: 2px solid var(--line3);
-  padding-left: 1rem;
-}
-.field-label {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
-  color: var(--ink3); text-transform: uppercase; margin-bottom: 6px;
-}
-.api-input {
-  width:100%; padding: 13px 16px;
-  font-family: var(--mono); font-size: 13px;
-  background: var(--bg3); border: 1px solid var(--line2);
-  border-radius: 6px; color: var(--ink);
-  outline: none; margin-bottom: 6px;
+.setup-logo { font-size: 13px; font-family: var(--mono); color: var(--cyan); letter-spacing: 0.15em; margin-bottom: 1.5rem; }
+.setup-card h1 { font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
+.setup-card p { font-size: 14px; color: var(--text2); margin-bottom: 1.75rem; line-height: 1.6; }
+.setup-label { font-size: 11px; font-family: var(--mono); color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.setup-input {
+  width: 100%; padding: 12px 14px; font-size: 14px; font-family: var(--mono);
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--text); outline: none; margin-bottom: 8px;
   transition: border-color 0.2s;
 }
-.api-input:focus { border-color: var(--google); }
-.api-input::placeholder { color: var(--ink3); }
-.api-hint {
-  font-size: 12px; color: var(--ink3); margin-bottom: 1.5rem; line-height: 1.5;
+.setup-input:focus { border-color: var(--cyan); }
+.setup-input::placeholder { color: var(--text3); }
+.setup-help { font-size: 12px; color: var(--text3); margin-bottom: 1.5rem; line-height: 1.5; }
+.setup-help a { color: var(--blue); text-decoration: none; }
+.setup-help a:hover { text-decoration: underline; }
+.setup-btn {
+  width: 100%; padding: 13px; font-size: 14px; font-weight: 600;
+  font-family: var(--sans); background: var(--cyan); color: #001a22;
+  border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.15s;
 }
-.api-hint a { color: var(--google); text-decoration:none; }
-.api-hint a:hover { text-decoration:underline; }
-.launch-btn {
-  width:100%; padding: 14px;
-  font-family: var(--display); font-size: 22px; letter-spacing: 0.08em;
-  background: var(--google); color: #fff;
-  border: none; border-radius: 6px; cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-}
-.launch-btn:hover { opacity: 0.88; }
-.launch-btn:active { transform: scale(0.98); }
-.setup-err {
-  font-family: var(--mono); font-size: 12px; color: var(--geo);
-  margin-top: 10px; min-height: 18px;
-}
-.google-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 1.5rem;
-  font-size: 12px; color: var(--ink3); font-family: var(--mono);
-}
-.g-dot { width:8px; height:8px; border-radius:50%; }
-.g-dot.b { background:#4285f4; }
-.g-dot.r { background:#ea4335; }
-.g-dot.y { background:#fbbc04; }
-.g-dot.g { background:#34a853; }
+.setup-btn:hover { opacity: 0.88; }
+.setup-err { color: var(--red); font-size: 13px; margin-top: 10px; min-height: 18px; }
 
-/* ── TOPBAR ── */
-#app { display:none; position:relative; z-index:1; }
+/* ── MAIN DASHBOARD ── */
+#dashboard { display: none; }
 
 .topbar {
-  position: sticky; top:0; z-index:100;
-  height: 52px;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 1.5rem;
-  background: rgba(7,8,11,0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--line);
+  padding: 0 1.5rem; height: 56px;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
 }
-.topbar-brand {
-  font-family: var(--display);
-  font-size: 22px; letter-spacing: 0.06em; color: var(--ink);
-  display: flex; align-items: center; gap: 10px;
-}
-.topbar-brand span { color: var(--google); }
-.live-pill {
-  display: flex; align-items: center; gap: 5px;
-  padding: 3px 9px; border-radius: 20px;
-  background: var(--earn-d); border: 1px solid rgba(0,229,160,0.2);
-  font-family: var(--mono); font-size: 10px; color: var(--earn); letter-spacing:0.1em;
-}
-.live-dot { width:6px; height:6px; border-radius:50%; background:var(--earn); animation: pulse 1.6s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,229,160,0.4);} 50%{opacity:0.7;box-shadow:0 0 0 5px rgba(0,229,160,0);} }
+.topbar-left { display: flex; align-items: center; gap: 1.5rem; }
+.logo-text { font-family: var(--mono); font-size: 13px; color: var(--cyan); letter-spacing: 0.12em; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 6px; animation: blink 1.8s ease-in-out infinite; }
+.live-label { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: 0.08em; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-.topbar-right { display:flex; align-items:center; gap:8px; }
-.countdown-wrap { display:flex; align-items:center; gap:6px; }
-.countdown-lbl { font-family:var(--mono); font-size:10px; color:var(--ink3); }
-.countdown-val { font-family:var(--mono); font-size:11px; color:var(--ink2); min-width:32px; }
-.refresh-btn {
-  display:flex; align-items:center; gap:6px; height:32px; padding:0 12px;
-  background: var(--bg3); border: 1px solid var(--line2);
-  border-radius: 6px; cursor:pointer; font-size:12px; font-weight:500;
-  color: var(--ink2); font-family:var(--body);
-  transition: all 0.15s;
-}
-.refresh-btn:hover { border-color: var(--google); color: var(--google); }
-.refresh-btn:disabled { opacity:0.4; cursor:not-allowed; }
-.ricon { display:inline-block; font-size:14px; }
-.ricon.spin { animation: spin 0.8s linear infinite; }
-@keyframes spin { to{transform:rotate(360deg);} }
-.key-btn {
-  height:32px; width:32px; display:flex; align-items:center; justify-content:center;
-  background:var(--bg3); border:1px solid var(--line2); border-radius:6px;
-  cursor:pointer; color:var(--ink3); font-size:13px; transition: all 0.15s;
-}
-.key-btn:hover { color:var(--ink); border-color:var(--line3); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.timer-label { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.timer-val { font-family: var(--mono); font-size: 11px; color: var(--text2); min-width: 28px; }
 
-/* ── FILTER BAR ── */
+.btn-icon {
+  width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  background: var(--bg3); border: 1px solid var(--border2); cursor: pointer;
+  color: var(--text2); font-size: 14px; transition: all 0.15s;
+}
+.btn-icon:hover { background: var(--bg4); color: var(--text); }
+.btn-icon.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-refresh {
+  display: flex; align-items: center; gap: 6px; padding: 0 14px; height: 34px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text2);
+  transition: all 0.15s; font-family: var(--sans);
+}
+.btn-refresh:hover { background: var(--bg4); color: var(--text); border-color: var(--cyan); }
+.btn-refresh .icon { font-size: 13px; }
+
+/* ── CATEGORY FILTER BAR ── */
 .filter-bar {
-  display: flex; align-items:center; gap: 6px;
-  padding: 10px 1.5rem;
-  background: var(--bg2); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 6px; padding: 12px 1.5rem;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
   overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
 }
-.filter-bar::-webkit-scrollbar { display:none; }
-.fchip {
-  display:flex; align-items:center; gap:6px;
-  padding: 5px 14px; border-radius: 4px;
-  border: 1px solid var(--line2); background: transparent;
-  font-size: 12px; font-weight:500; color: var(--ink2);
-  cursor:pointer; white-space:nowrap; font-family:var(--body);
-  transition: all 0.15s;
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-chip {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border-radius: 20px; border: 1px solid var(--border2); background: transparent;
+  font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  color: var(--text2); transition: all 0.15s; font-family: var(--sans);
 }
-.fchip:hover { background: var(--bg3); color:var(--ink); }
-.fchip.active[data-f="all"]      { background:var(--bg4); color:var(--ink); border-color:var(--line3); }
-.fchip.active[data-f="earnings"] { background:var(--earn-d); color:var(--earn); border-color:rgba(0,229,160,0.25); }
-.fchip.active[data-f="geo"]      { background:var(--geo-d);  color:var(--geo);  border-color:rgba(255,82,82,0.25); }
-.fchip.active[data-f="crypto"]   { background:var(--crypto-d); color:var(--crypto); border-color:rgba(255,179,0,0.25); }
+.filter-chip:hover { background: var(--bg3); color: var(--text); }
+.filter-chip.active { color: var(--text); border-color: transparent; }
+.filter-chip[data-cat="fed"].active         { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: rgba(0,212,255,0.25); }
+.filter-chip[data-cat="earnings"].active    { background: var(--green-bg);   color: var(--green); border-color: rgba(0,212,126,0.25); }
+.filter-chip[data-cat="geopolitical"].active { background: var(--red-bg);    color: var(--red);  border-color: rgba(255,77,77,0.25); }
+.filter-chip[data-cat="crypto"].active      { background: var(--amber-bg);   color: var(--amber); border-color: rgba(255,184,0,0.25); }
+.filter-chip[data-cat="all"].active         { background: var(--bg4); color: var(--text); border-color: var(--border2); }
 
-/* ── GRID ── */
-.grid {
+/* ── MAIN CONTENT GRID ── */
+.main-grid {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  min-height: calc(100vh - 52px - 45px);
+  grid-template-columns: 1fr 340px;
+  gap: 0;
+  min-height: calc(100vh - 56px - 49px);
 }
-@media(max-width:860px){ .grid{ grid-template-columns:1fr; } .sidebar{ border-top: 1px solid var(--line); border-left:none !important; } }
+@media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
 
-/* ── FEED COLUMN ── */
-.feed-col { padding: 1.25rem 1.5rem; border-right: 1px solid var(--line); }
-.feed-hdr {
-  display:flex; align-items:center; justify-content:space-between;
+.news-column { padding: 1.5rem; border-right: 1px solid var(--border); }
+.sidebar { padding: 1.5rem; }
+
+/* ── SECTION HEADERS ── */
+.section-hdr {
+  display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 1rem;
 }
-.feed-hdr-left {
-  font-family:var(--mono); font-size:10px; color:var(--ink3); letter-spacing:0.14em; text-transform:uppercase;
-  display:flex; align-items:center; gap:8px;
-}
-.feed-count { color: var(--ink2); }
-.google-grounding-badge {
-  display:inline-flex; align-items:center; gap:5px;
-  padding:2px 8px; border-radius:4px; border:1px solid var(--line2);
-  font-family:var(--mono); font-size:10px; color:var(--ink3);
-}
+.section-title { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; }
+.section-count { font-family: var(--mono); font-size: 11px; color: var(--text3); }
 
-/* ── NEWS CARD ── */
-.news-stack { display:flex; flex-direction:column; gap:8px; }
+/* ── NEWS CARDS ── */
+.news-list { display: flex; flex-direction: column; gap: 1px; }
 
-.ncard {
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 1rem 1.125rem;
-  position: relative; overflow:hidden;
+.news-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 8px;
   transition: border-color 0.15s, background 0.15s;
-  animation: fadeUp 0.35s ease both;
+  cursor: default; position: relative; overflow: hidden;
 }
-@keyframes fadeUp { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
-.ncard:hover { border-color: var(--line2); background: var(--bg3); }
-.ncard::after {
-  content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
-  border-radius: 3px 0 0 3px;
+.news-card:hover { border-color: var(--border2); background: var(--bg3); }
+.news-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
 }
-.ncard.earnings::after { background: var(--earn); }
-.ncard.geo::after      { background: var(--geo); }
-.ncard.crypto::after   { background: var(--crypto); }
+.news-card.fed::before       { background: var(--cyan); }
+.news-card.earnings::before  { background: var(--green); }
+.news-card.geopolitical::before { background: var(--red); }
+.news-card.crypto::before    { background: var(--amber); }
 
-.ncard-top {
-  display:flex; align-items:flex-start; justify-content:space-between; gap:8px;
-  margin-bottom: 7px;
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cat-badge {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 4px; font-weight: 500;
 }
-.ncard-badges { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.cbadge {
-  font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
-  padding:2px 7px; border-radius:3px; font-weight:500;
-}
-.cbadge.earnings { background:var(--earn-d); color:var(--earn); }
-.cbadge.geo      { background:var(--geo-d);  color:var(--geo); }
-.cbadge.crypto   { background:var(--crypto-d); color:var(--crypto); }
-.ibadge {
-  font-family:var(--mono); font-size:9px; letter-spacing:0.06em; text-transform:uppercase;
-  padding:2px 7px; border-radius:3px;
-}
-.ibadge.HIGH   { background:rgba(255,82,82,0.15); color:var(--geo); }
-.ibadge.MEDIUM { background:rgba(255,179,0,0.12); color:var(--crypto); }
-.ibadge.LOW    { background:rgba(107,122,148,0.12); color:var(--ink2); }
-.ncard-time { font-family:var(--mono); font-size:10px; color:var(--ink3); white-space:nowrap; flex-shrink:0; }
+.cat-badge.fed         { background: rgba(0,212,255,0.12); color: var(--cyan); }
+.cat-badge.earnings    { background: var(--green-bg); color: var(--green); }
+.cat-badge.geopolitical{ background: var(--red-bg); color: var(--red); }
+.cat-badge.crypto      { background: var(--amber-bg); color: var(--amber); }
 
-.ncard-headline { font-size:15px; font-weight:600; color:var(--ink); line-height:1.35; margin-bottom:7px; }
-.ncard-summary  { font-size:13px; font-weight:300; color:var(--ink2); line-height:1.6; margin-bottom:9px; }
-.ncard-footer { display:flex; align-items:center; justify-content:space-between; }
-.ncard-source { font-family:var(--mono); font-size:10px; color:var(--ink3); }
-.ticker-row { display:flex; gap:4px; flex-wrap:wrap; }
-.ticker {
-  font-family:var(--mono); font-size:10px;
-  color:var(--google); background:var(--google-d);
-  padding:2px 6px; border-radius:3px; border:1px solid rgba(66,133,244,0.15);
+.impact-badge {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 4px;
+}
+.impact-HIGH   { background: rgba(255,77,77,0.15); color: var(--red); }
+.impact-MEDIUM { background: rgba(255,184,0,0.12); color: var(--amber); }
+.impact-LOW    { background: rgba(122,135,153,0.12); color: var(--text2); }
+
+.card-time { font-family: var(--mono); font-size: 10px; color: var(--text3); white-space: nowrap; }
+.card-headline { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 6px; }
+.card-summary { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 8px; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; }
+.card-source { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+.card-tickers { display: flex; gap: 4px; flex-wrap: wrap; }
+.ticker-chip {
+  font-family: var(--mono); font-size: 10px; color: var(--blue); background: var(--blue-bg);
+  padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(77,159,255,0.15);
 }
 
-/* ── SKELETON ── */
-.sk { background:var(--bg3); border-radius:4px; animation:shimmer 1.4s ease-in-out infinite; }
-@keyframes shimmer { 0%,100%{opacity:0.35;} 50%{opacity:0.7;} }
-.sk-card { background:var(--bg2); border:1px solid var(--line); border-radius:8px; padding:1rem 1.125rem; margin-bottom:8px; }
-.sk-row  { height:11px; margin-bottom:7px; }
+/* ── SKELETON LOADER ── */
+.skeleton { animation: shimmer 1.5s ease-in-out infinite; border-radius: 6px; background: var(--bg3); }
+@keyframes shimmer { 0%,100%{opacity:0.4;} 50%{opacity:0.8;} }
+.skel-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 8px; }
+.skel-line { height: 12px; margin-bottom: 8px; }
+.skel-lg { width: 70%; }
+.skel-md { width: 50%; }
+.skel-sm { width: 30%; }
+.skel-full { width: 100%; }
+.skel-xl { height: 16px; }
 
-/* ── SIDEBAR ── */
-.sidebar { padding: 1.25rem; border-left: 1px solid var(--line); }
+/* ── SIDEBAR WIDGETS ── */
+.widget { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.widget-title { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.875rem; }
 
-.widget { margin-bottom: 1.25rem; }
-.w-title {
-  font-family:var(--mono); font-size:10px; color:var(--ink3);
-  letter-spacing:0.14em; text-transform:uppercase; margin-bottom:0.875rem;
-  padding-bottom:0.5rem; border-bottom:1px solid var(--line);
-}
+.alert-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.alert-item:last-child { border-bottom: none; padding-bottom: 0; }
+.alert-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.alert-dot.high   { background: var(--red); }
+.alert-dot.medium { background: var(--amber); }
+.alert-dot.low    { background: var(--text3); }
+.alert-text { color: var(--text2); line-height: 1.4; }
+.alert-text strong { color: var(--text); font-weight: 500; }
 
-/* Sentiment gauge */
-.sentiment-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.sentiment-label { font-family:var(--display); font-size:28px; letter-spacing:0.05em; }
-.sentiment-score { font-family:var(--mono); font-size:11px; color:var(--ink3); }
-.gauge-bar { display:flex; gap:3px; margin-bottom:10px; }
-.gauge-seg { flex:1; height:14px; border-radius:2px; }
-.sentiment-reason { font-size:12px; color:var(--ink2); line-height:1.55; font-weight:300; }
+.sources-list { display: flex; flex-direction: column; gap: 6px; }
+.source-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+.source-name { color: var(--text2); font-family: var(--mono); }
+.source-status { font-family: var(--mono); font-size: 10px; color: var(--green); }
 
-/* Alerts */
-.alert-row {
-  display:flex; align-items:flex-start; gap:8px;
-  padding:8px 0; border-bottom:1px solid var(--line);
-  font-size:12px; line-height:1.5;
-}
-.alert-row:last-child { border-bottom:none; }
-.adot { width:6px; height:6px; border-radius:50%; margin-top:5px; flex-shrink:0; }
-.adot.high   { background:var(--geo); }
-.adot.medium { background:var(--crypto); }
-.adot.low    { background:var(--ink3); }
-.alert-text { color:var(--ink2); }
-.alert-text strong { color:var(--ink); font-weight:500; }
+.last-update { font-family: var(--mono); font-size: 11px; color: var(--text3); text-align: center; padding-top: 0.5rem; }
 
-/* Sources */
-.src-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:12px; border-bottom:1px solid var(--line); }
-.src-row:last-child { border-bottom:none; }
-.src-name { font-family:var(--mono); color:var(--ink2); font-size:11px; }
-.src-ok { font-family:var(--mono); font-size:10px; color:var(--earn); }
+/* ── EMPTY / ERROR STATE ── */
+.empty-state { text-align: center; padding: 3rem 1rem; }
+.empty-icon { font-size: 32px; margin-bottom: 1rem; opacity: 0.4; }
+.empty-title { font-size: 15px; font-weight: 500; color: var(--text2); margin-bottom: 0.5rem; }
+.empty-sub { font-size: 13px; color: var(--text3); }
 
-.last-updated { font-family:var(--mono); font-size:10px; color:var(--ink3); text-align:center; margin-top:0.75rem; }
-
-/* ── EMPTY / ERROR ── */
-.empty { text-align:center; padding:3rem 1rem; }
-.empty-icon { font-size:28px; opacity:0.3; margin-bottom:0.75rem; }
-.empty-msg { font-size:14px; color:var(--ink2); margin-bottom:0.25rem; }
-.empty-sub { font-size:12px; color:var(--ink3); line-height:1.5; }
-
-/* Scrollbar */
-::-webkit-scrollbar{width:3px;}
-::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px;}
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
 </style>
 </head>
 <body>
 
-<!-- ══════════════ SETUP ══════════════ -->
-<div id="setup">
-  <div class="setup-wrap">
-    <div class="setup-eyebrow">Powered by Google Gemini</div>
-    <h1>MARKET<br><span>INTEL</span></h1>
-    <p class="setup-desc">
-      Real-time market news powered by <strong>Gemini 2.0 Flash</strong> with native Google Search grounding —
-      the fastest way to surface breaking news on earnings, geopolitical events, tariffs, and crypto that moves markets.
-    </p>
-    <div class="field-label">Google AI Studio API Key</div>
-    <input class="api-input" type="password" id="apikey" placeholder="AIza..." autocomplete="off"/>
-    <div class="api-hint">
-      Free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> →
-      "Get API key". Stored only in your browser session.
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">◈ MARKET INTEL</div>
+    <h1>Connect your API key</h1>
+    <p>This dashboard uses the Claude AI API with live web search to scan verified financial sources and surface breaking market-moving news in real time.</p>
+
+    <div class="setup-label">Anthropic API Key</div>
+    <input type="password" class="setup-input" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off" />
+    <div class="setup-help">
+      Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+      Your key is stored only in your browser's sessionStorage and never sent anywhere except Anthropic's API.
     </div>
-    <button class="launch-btn" onclick="launch()">LAUNCH DASHBOARD</button>
+
+    <button class="setup-btn" onclick="startDashboard()">Launch Dashboard →</button>
     <div class="setup-err" id="setup-err"></div>
-    <div class="google-badge">
-      <span class="g-dot b"></span><span class="g-dot r"></span>
-      <span class="g-dot y"></span><span class="g-dot g"></span>
-      Google Search grounding — live results, not training data
-    </div>
   </div>
 </div>
 
-<!-- ══════════════ APP ══════════════ -->
-<div id="app">
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard">
 
-  <!-- Topbar -->
+  <!-- Top bar -->
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div class="topbar-brand">MARKET <span>INTEL</span></div>
-      <div class="live-pill" id="live-pill">
-        <div class="live-dot"></div>
-        <span id="live-txt">LIVE</span>
-      </div>
+    <div class="topbar-left">
+      <span class="logo-text">◈ MARKET INTEL</span>
+      <span><span class="live-dot"></span><span class="live-label" id="live-label">LIVE</span></span>
     </div>
     <div class="topbar-right">
-      <div class="countdown-wrap">
-        <span class="countdown-lbl">next scan</span>
-        <span class="countdown-val" id="cdval">5:00</span>
-      </div>
-      <button class="refresh-btn" id="refbtn" onclick="fetchNews(true)">
-        <span class="ricon" id="ricon">↻</span> Refresh
+      <span class="timer-label">Next refresh</span>
+      <span class="timer-val" id="countdown-val">5:00</span>
+      <button class="btn-refresh" onclick="fetchAllNews(true)" id="refresh-btn">
+        <span class="icon" id="refresh-icon">↻</span> Refresh now
       </button>
-      <div class="key-btn" title="Change API key" onclick="resetKey()">⚙</div>
+      <button class="btn-icon" onclick="clearKey()" title="Change API key">⚙</button>
     </div>
   </div>
 
   <!-- Filter bar -->
   <div class="filter-bar">
-    <button class="fchip active" data-f="all"      onclick="setFilter('all')">All news</button>
-    <button class="fchip"        data-f="earnings"  onclick="setFilter('earnings')">📈 Earnings &amp; Guidance</button>
-    <button class="fchip"        data-f="geo"       onclick="setFilter('geo')">🌐 Geopolitical / Tariffs</button>
-    <button class="fchip"        data-f="crypto"    onclick="setFilter('crypto')">₿ Crypto &amp; Commodities</button>
+    <button class="filter-chip active" data-cat="all" onclick="setFilter('all')">All news</button>
+    <button class="filter-chip" data-cat="fed" onclick="setFilter('fed')">🏦 Fed / Rates</button>
+    <button class="filter-chip" data-cat="earnings" onclick="setFilter('earnings')">📊 Earnings</button>
+    <button class="filter-chip" data-cat="geopolitical" onclick="setFilter('geopolitical')">🌐 Geopolitical / Tariffs</button>
+    <button class="filter-chip" data-cat="crypto" onclick="setFilter('crypto')">₿ Crypto & Commodities</button>
   </div>
 
   <!-- Main grid -->
-  <div class="grid">
+  <div class="main-grid">
 
-    <!-- Feed -->
-    <div class="feed-col">
-      <div class="feed-hdr">
-        <div class="feed-hdr-left">
-          Breaking news
-          <span class="feed-count" id="feed-count"></span>
-        </div>
-        <div class="google-grounding-badge">
-          <span class="g-dot b" style="width:6px;height:6px;border-radius:50%;"></span>
-          Google Search grounded
-        </div>
+    <!-- News feed -->
+    <div class="news-column">
+      <div class="section-hdr">
+        <span class="section-title">Breaking market news</span>
+        <span class="section-count" id="news-count"></span>
       </div>
-      <div class="news-stack" id="news-stack">
-        <!-- skeleton -->
-        <div class="sk-card"><div class="sk sk-row" style="width:35%;"></div><div class="sk sk-row" style="width:90%;height:15px;"></div><div class="sk sk-row" style="width:75%;"></div><div class="sk sk-row" style="width:55%;"></div></div>
-        <div class="sk-card"><div class="sk sk-row" style="width:28%;"></div><div class="sk sk-row" style="width:85%;height:15px;"></div><div class="sk sk-row" style="width:65%;"></div></div>
-        <div class="sk-card"><div class="sk sk-row" style="width:40%;"></div><div class="sk sk-row" style="width:80%;height:15px;"></div><div class="sk sk-row" style="width:70%;"></div><div class="sk sk-row" style="width:45%;"></div></div>
-        <div class="sk-card"><div class="sk sk-row" style="width:32%;"></div><div class="sk sk-row" style="width:88%;height:15px;"></div><div class="sk sk-row" style="width:60%;"></div></div>
+      <div id="news-list">
+        <!-- Skeleton loaders shown on first load -->
+        <div class="skel-card">
+          <div class="skeleton skel-line skel-sm" style="margin-bottom:12px;"></div>
+          <div class="skeleton skel-line skel-xl skel-full"></div>
+          <div class="skeleton skel-line skel-lg" style="margin-top:6px;"></div>
+          <div class="skeleton skel-line skel-md" style="margin-top:6px;"></div>
+        </div>
+        <div class="skel-card">
+          <div class="skeleton skel-line skel-sm" style="margin-bottom:12px;"></div>
+          <div class="skeleton skel-line skel-xl skel-full"></div>
+          <div class="skeleton skel-line skel-lg" style="margin-top:6px;"></div>
+        </div>
+        <div class="skel-card">
+          <div class="skeleton skel-line skel-sm" style="margin-bottom:12px;"></div>
+          <div class="skeleton skel-line skel-xl skel-lg"></div>
+          <div class="skeleton skel-line skel-full" style="margin-top:6px;"></div>
+          <div class="skeleton skel-line skel-md" style="margin-top:6px;"></div>
+        </div>
       </div>
     </div>
 
     <!-- Sidebar -->
     <div class="sidebar">
 
+      <!-- High-impact alerts -->
       <div class="widget">
-        <div class="w-title">◎ market sentiment</div>
+        <div class="widget-title">⚡ High-impact alerts</div>
+        <div id="alerts-list">
+          <div class="skeleton skel-line skel-full" style="margin-bottom:8px;"></div>
+          <div class="skeleton skel-line skel-lg" style="margin-bottom:8px;"></div>
+          <div class="skeleton skel-line skel-md"></div>
+        </div>
+      </div>
+
+      <!-- Verified sources -->
+      <div class="widget">
+        <div class="widget-title">✓ Verified sources scanned</div>
+        <div class="sources-list">
+          <div class="source-row"><span class="source-name">Federal Reserve</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">SEC EDGAR</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">Reuters</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">Bloomberg</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">WSJ Markets</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">CNBC</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">US Treasury</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">Earnings Whispers</span><span class="source-status">● LIVE</span></div>
+        </div>
+      </div>
+
+      <!-- Market sentiment -->
+      <div class="widget">
+        <div class="widget-title">◎ AI sentiment</div>
         <div id="sentiment-box">
-          <div class="sk sk-row" style="width:50%;height:22px;margin-bottom:12px;"></div>
-          <div class="sk sk-row" style="width:100%;height:12px;margin-bottom:8px;"></div>
-          <div class="sk sk-row" style="width:80%;"></div>
+          <div class="skeleton skel-line skel-full" style="margin-bottom:8px;"></div>
+          <div class="skeleton skel-line skel-lg"></div>
         </div>
       </div>
 
-      <div class="widget">
-        <div class="w-title">⚡ high-impact alerts</div>
-        <div id="alerts-box">
-          <div class="sk sk-row" style="width:100%;margin-bottom:8px;"></div>
-          <div class="sk sk-row" style="width:80%;margin-bottom:8px;"></div>
-          <div class="sk sk-row" style="width:65%;"></div>
-        </div>
-      </div>
-
-      <div class="widget">
-        <div class="w-title">✓ verified sources</div>
-        <div class="src-row"><span class="src-name">Reuters</span><span class="src-ok">● LIVE</span></div>
-        <div class="src-row"><span class="src-name">Bloomberg</span><span class="src-ok">● LIVE</span></div>
-        <div class="src-row"><span class="src-name">WSJ Markets</span><span class="src-ok">● LIVE</span></div>
-        <div class="src-row"><span class="src-name">CNBC</span><span class="src-ok">● LIVE</span></div>
-        <div class="src-row"><span class="src-name">SEC EDGAR</span><span class="src-ok">● LIVE</span></div>
-        <div class="src-row"><span class="src-name">Earnings Whispers</span><span class="src-ok">● LIVE</span></div>
-        <div class="src-row"><span class="src-name">CoinDesk</span><span class="src-ok">● LIVE</span></div>
-        <div class="src-row"><span class="src-name">AP / FT</span><span class="src-ok">● LIVE</span></div>
-      </div>
-
-      <div class="last-updated" id="last-updated">Scanning Google Search...</div>
+      <div class="last-update" id="last-update-label">Fetching latest news...</div>
     </div>
 
   </div>
 </div>
 
 <script>
-/* ═══════════════════════════════
-   STATE
-═══════════════════════════════ */
-let APIKEY = '';
-let allItems = [];
-let activeFilter = 'all';
-let cdSecs = 300;
-let cdTimer = null;
+/* ─────────────────────────────────────────
+   CONFIG & STATE
+───────────────────────────────────────── */
+const REFRESH_INTERVAL = 5 * 60; // seconds
+let apiKey = '';
+let allNewsItems = [];
+let currentFilter = 'all';
+let countdownSecs = REFRESH_INTERVAL;
+let countdownTimer = null;
+let refreshTimer = null;
 
-const MODEL = 'gemini-2.0-flash';
-const GEMINI_URL = () =>
-  `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${APIKEY}`;
-
-/* ═══════════════════════════════
-   SETUP / TEARDOWN
-═══════════════════════════════ */
-function launch() {
-  const key = document.getElementById('apikey').value.trim();
+/* ─────────────────────────────────────────
+   SETUP
+───────────────────────────────────────── */
+function startDashboard() {
+  const key = document.getElementById('api-key-input').value.trim();
   const err = document.getElementById('setup-err');
-  if (!key || key.length < 20) { err.textContent = 'Please enter a valid Google AI Studio API key.'; return; }
-  APIKEY = key;
-  sessionStorage.setItem('mi_gkey', key);
+  if (!key || !key.startsWith('sk-ant-')) {
+    err.textContent = 'Please enter a valid Anthropic API key (starts with sk-ant-).';
+    return;
+  }
+  apiKey = key;
+  sessionStorage.setItem('mid_key', key);
   err.textContent = '';
-  document.getElementById('setup').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  fetchNews(true);
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  fetchAllNews(true);
   startCountdown();
 }
 
-function resetKey() {
-  sessionStorage.removeItem('mi_gkey');
-  APIKEY = '';
-  clearInterval(cdTimer);
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('setup').style.display = 'flex';
+function clearKey() {
+  sessionStorage.removeItem('mid_key');
+  apiKey = '';
+  clearInterval(countdownTimer);
+  clearTimeout(refreshTimer);
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
 }
 
-// Restore session
+// Auto-restore key from session
 window.addEventListener('DOMContentLoaded', () => {
-  const saved = sessionStorage.getItem('mi_gkey');
-  if (saved) { document.getElementById('apikey').value = saved; APIKEY = saved; launch(); }
-  document.getElementById('apikey').addEventListener('keydown', e => { if(e.key==='Enter') launch(); });
+  const saved = sessionStorage.getItem('mid_key');
+  if (saved) {
+    document.getElementById('api-key-input').value = saved;
+    apiKey = saved;
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    fetchAllNews(true);
+    startCountdown();
+  }
 });
 
-/* ═══════════════════════════════
-   COUNTDOWN
-═══════════════════════════════ */
+/* ─────────────────────────────────────────
+   COUNTDOWN TIMER
+───────────────────────────────────────── */
 function startCountdown() {
-  cdSecs = 300;
-  clearInterval(cdTimer);
-  cdTimer = setInterval(() => {
-    cdSecs--;
-    const m = Math.floor(cdSecs/60);
-    const s = cdSecs%60;
-    document.getElementById('cdval').textContent = m+':'+String(s).padStart(2,'0');
-    if (cdSecs <= 0) { fetchNews(false); cdSecs = 300; }
+  countdownSecs = REFRESH_INTERVAL;
+  clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
+    countdownSecs--;
+    const m = Math.floor(countdownSecs / 60);
+    const s = countdownSecs % 60;
+    document.getElementById('countdown-val').textContent = m + ':' + String(s).padStart(2, '0');
+    if (countdownSecs <= 0) {
+      fetchAllNews(false);
+      countdownSecs = REFRESH_INTERVAL;
+    }
   }, 1000);
 }
 
-/* ═══════════════════════════════
+/* ─────────────────────────────────────────
    FILTER
-═══════════════════════════════ */
-function setFilter(f) {
-  activeFilter = f;
-  document.querySelectorAll('.fchip').forEach(c => c.classList.toggle('active', c.dataset.f === f));
-  renderFeed();
+───────────────────────────────────────── */
+function setFilter(cat) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
+  renderNews();
 }
 
-/* ═══════════════════════════════
-   FETCH — Gemini 2.0 Flash + Google Search grounding
-═══════════════════════════════ */
-async function fetchNews(manual) {
-  const btn = document.getElementById('refbtn');
-  const icon = document.getElementById('ricon');
-  const liveTxt = document.getElementById('live-txt');
-  const livePill = document.getElementById('live-pill');
-  btn.disabled = true;
-  icon.classList.add('spin');
-  liveTxt.textContent = 'SCANNING';
-  livePill.style.background = 'rgba(255,179,0,0.1)';
-  livePill.style.borderColor = 'rgba(255,179,0,0.25)';
-  liveTxt.style.color = 'var(--crypto)';
-  document.querySelector('.live-dot').style.background = 'var(--crypto)';
+/* ─────────────────────────────────────────
+   FETCH NEWS via Claude API + web_search
+───────────────────────────────────────── */
+async function fetchAllNews(isManual) {
+  const refreshBtn = document.getElementById('refresh-btn');
+  const refreshIcon = document.getElementById('refresh-icon');
+  const liveLabel = document.getElementById('live-label');
+  refreshBtn.disabled = true;
+  refreshIcon.classList.add('spinning');
+  liveLabel.textContent = 'UPDATING';
+  liveLabel.style.color = 'var(--amber)';
 
-  if (manual) {
-    document.getElementById('news-stack').innerHTML = skeletons(4);
-    document.getElementById('alerts-box').innerHTML = '<div class="sk sk-row" style="width:100%;margin-bottom:8px;"></div><div class="sk sk-row" style="width:75%;"></div>';
-    document.getElementById('sentiment-box').innerHTML = '<div class="sk sk-row" style="width:50%;height:22px;margin-bottom:12px;"></div><div class="sk sk-row" style="width:100%;height:12px;margin-bottom:8px;"></div><div class="sk sk-row" style="width:80%;"></div>';
+  if (isManual) {
+    document.getElementById('news-list').innerHTML = getSkeletons(4);
+    document.getElementById('alerts-list').innerHTML = '<div class="skeleton skel-line skel-full" style="margin-bottom:8px;"></div><div class="skeleton skel-line skel-lg"></div>';
+    document.getElementById('sentiment-box').innerHTML = '<div class="skeleton skel-line skel-full" style="margin-bottom:8px;"></div><div class="skeleton skel-line skel-md"></div>';
   }
 
   const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
+  const dateStr = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
 
-  const prompt = `You are a financial news intelligence system. Today is ${dateStr} at ${timeStr}.
+  const prompt = `Today is ${dateStr} at ${timeStr}.
 
-Use Google Search to find REAL breaking news from the last 4 hours that would move the US stock market.
+Use web search to find the LATEST breaking news from the last 6 hours that would significantly impact the US stock market.
 
-Search specifically for:
-- Earnings beats/misses, revenue guidance changes, analyst upgrades/downgrades for major companies
-- Tariff announcements, trade war escalation, sanctions, geopolitical conflicts affecting markets
-- Bitcoin and major crypto price moves, oil/gold/commodity swings and supply disruptions
+Search for news in all 4 of these categories:
+1. Fed / Interest Rates — Federal Reserve statements, FOMC decisions, inflation data (CPI/PCE), jobs reports, Fed speeches
+2. Earnings & Guidance — Major company earnings beats/misses, revenue guidance changes, analyst upgrades/downgrades
+3. Geopolitical / Tariffs — Trade wars, sanctions, tariff announcements, geopolitical conflicts affecting markets
+4. Crypto & Commodities — Bitcoin/major crypto moves, oil price swings, gold, supply disruptions
 
-Return ONLY a raw JSON object — no markdown, no code fences, no explanation. Schema:
-
+Respond ONLY with a valid JSON object. No markdown, no code fences, no preamble. Format:
 {
   "items": [
     {
-      "id": "string",
-      "category": "earnings | geo | crypto",
-      "impact": "HIGH | MEDIUM | LOW",
-      "headline": "under 14 words",
-      "summary": "2-3 sentences: what happened + why it matters for stocks/market",
-      "source": "exact publication name",
-      "tickers": ["AAPL","SPY"],
-      "minutesAgo": 30
+      "id": "unique_id_1",
+      "category": "fed",
+      "impact": "HIGH",
+      "headline": "Short punchy headline under 12 words",
+      "summary": "2-3 sentence summary of what happened and why it matters for stocks.",
+      "source": "Source Name",
+      "tickers": ["SPY", "TLT"],
+      "minutesAgo": 45
     }
   ],
   "sentiment": {
-    "overall": "BULLISH | BEARISH | NEUTRAL",
-    "score": 2,
-    "reason": "One sentence overall market mood."
+    "overall": "BEARISH",
+    "score": -2,
+    "reason": "One sentence explaining overall market mood based on today's news."
   },
   "alerts": [
-    { "level": "high | medium | low", "text": "Urgent alert with <strong>key entity</strong> highlighted." }
+    { "level": "high", "text": "Bold headline <strong>ticker/entity</strong> brief impact" }
   ]
 }
 
 Rules:
-- 8-12 items covering all 3 categories
-- Only REAL news from today verified by Google Search — no hallucinated stories
-- tickers: 2-4 relevant symbols, empty array if none
-- alerts: top 3-4 most urgent items only
-- minutesAgo: realistic estimate 0-240`;
+- Include 8-12 items total across all 4 categories
+- impact must be HIGH, MEDIUM, or LOW
+- category must be exactly: fed, earnings, geopolitical, or crypto
+- tickers: relevant stock symbols affected (2-4 max), empty array if none
+- sentiment.overall: BULLISH, BEARISH, or NEUTRAL
+- sentiment.score: -5 to +5
+- alerts: 3-5 most urgent items only
+- minutesAgo: estimated minutes since news broke (use 0-360)
+- Only include REAL news from today. If nothing major in a category, include 1-2 items marked LOW impact.
+- Source must be a real publication: Reuters, Bloomberg, WSJ, CNBC, Federal Reserve, SEC, AP, FT, etc.`;
 
   try {
-    const body = {
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      tools: [{ google_search: {} }],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 4096,
-        responseMimeType: 'text/plain'
-      }
-    };
-
-    const res = await fetch(GEMINI_URL(), {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
 
     if (!res.ok) {
-      const e = await res.json();
-      throw new Error(e.error?.message || 'API error ' + res.status);
+      const errData = await res.json();
+      throw new Error(errData.error?.message || 'API error ' + res.status);
     }
 
     const data = await res.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('No JSON in response. Raw: ' + raw.slice(0, 200));
-    const parsed = JSON.parse(match[0]);
 
-    allItems = parsed.items || [];
-    renderFeed();
-    renderSentiment(parsed.sentiment || {});
+    // Extract text from response
+    let rawText = '';
+    for (const block of data.content) {
+      if (block.type === 'text') rawText += block.text;
+    }
+
+    // Parse JSON
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON found in response');
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    allNewsItems = parsed.items || [];
+    renderNews();
     renderAlerts(parsed.alerts || []);
+    renderSentiment(parsed.sentiment || {});
 
-    const t = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('last-updated').textContent = 'Last scanned: ' + t;
-    document.getElementById('feed-count').textContent = '· ' + allItems.length + ' stories';
-    cdSecs = 300;
+    const updateTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('last-update-label').textContent = 'Last updated: ' + updateTime;
+    document.getElementById('news-count').textContent = allNewsItems.length + ' stories';
 
-  } catch(e) {
-    console.error(e);
-    document.getElementById('news-stack').innerHTML = `
-      <div class="empty">
+    // Reset countdown
+    countdownSecs = REFRESH_INTERVAL;
+
+  } catch (err) {
+    console.error('Fetch error:', err);
+    document.getElementById('news-list').innerHTML = `
+      <div class="empty-state">
         <div class="empty-icon">⚠</div>
-        <div class="empty-msg">Could not fetch news</div>
-        <div class="empty-sub">${esc(e.message)}<br><br>Check your API key and internet connection.</div>
+        <div class="empty-title">Could not fetch news</div>
+        <div class="empty-sub">${err.message}<br><br>Check your API key and try again.</div>
       </div>`;
-    document.getElementById('alerts-box').innerHTML = '<div style="font-size:12px;color:var(--ink3);">Unavailable</div>';
+    document.getElementById('alerts-list').innerHTML = '<div style="color:var(--text3); font-size:12px;">Unable to load.</div>';
   }
 
-  btn.disabled = false;
-  icon.classList.remove('spin');
-  liveTxt.textContent = 'LIVE';
-  livePill.style.background = 'var(--earn-d)';
-  livePill.style.borderColor = 'rgba(0,229,160,0.2)';
-  liveTxt.style.color = 'var(--earn)';
-  document.querySelector('.live-dot').style.background = 'var(--earn)';
+  refreshBtn.disabled = false;
+  refreshIcon.classList.remove('spinning');
+  liveLabel.textContent = 'LIVE';
+  liveLabel.style.color = 'var(--green)';
 }
 
-/* ═══════════════════════════════
-   RENDER FEED
-═══════════════════════════════ */
-function renderFeed() {
-  const filtered = activeFilter === 'all' ? allItems : allItems.filter(i => i.category === activeFilter);
-  document.getElementById('feed-count').textContent = '· ' + filtered.length + ' stories';
+/* ─────────────────────────────────────────
+   RENDER
+───────────────────────────────────────── */
+function renderNews() {
+  const filtered = currentFilter === 'all'
+    ? allNewsItems
+    : allNewsItems.filter(i => i.category === currentFilter);
+
+  document.getElementById('news-count').textContent = filtered.length + ' stories';
 
   if (!filtered.length) {
-    document.getElementById('news-stack').innerHTML = `
-      <div class="empty">
+    document.getElementById('news-list').innerHTML = `
+      <div class="empty-state">
         <div class="empty-icon">◎</div>
-        <div class="empty-msg">No stories in this category</div>
-        <div class="empty-sub">Select a different filter or hit Refresh.</div>
+        <div class="empty-title">No stories in this category</div>
+        <div class="empty-sub">Try another filter or refresh to fetch new data.</div>
       </div>`;
     return;
   }
 
-  const order = { HIGH:0, MEDIUM:1, LOW:2 };
-  const sorted = [...filtered].sort((a,b) => {
-    if (order[a.impact] !== order[b.impact]) return order[a.impact]-order[b.impact];
-    return (a.minutesAgo||0)-(b.minutesAgo||0);
+  // Sort by impact then recency
+  const order = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+  const sorted = [...filtered].sort((a, b) => {
+    if (order[a.impact] !== order[b.impact]) return order[a.impact] - order[b.impact];
+    return (a.minutesAgo || 0) - (b.minutesAgo || 0);
   });
 
-  document.getElementById('news-stack').innerHTML = sorted.map((item, idx) => {
-    const tickers = (item.tickers||[]).map(t=>`<span class="ticker">${esc(t)}</span>`).join('');
-    const catMap = { earnings:'EARNINGS', geo:'GEO/TARIFFS', crypto:'CRYPTO/CMDTY' };
+  document.getElementById('news-list').innerHTML = sorted.map(item => {
+    const tickers = (item.tickers || []).map(t => `<span class="ticker-chip">${t}</span>`).join('');
+    const ago = formatAgo(item.minutesAgo || 0);
     return `
-    <div class="ncard ${esc(item.category)}" style="animation-delay:${idx*40}ms">
-      <div class="ncard-top">
-        <div class="ncard-badges">
-          <span class="cbadge ${esc(item.category)}">${catMap[item.category]||item.category}</span>
-          <span class="ibadge ${esc(item.impact)}">${esc(item.impact)}</span>
+    <div class="news-card ${item.category}">
+      <div class="card-top">
+        <div class="card-meta">
+          <span class="cat-badge ${item.category}">${catLabel(item.category)}</span>
+          <span class="impact-badge impact-${item.impact}">${item.impact}</span>
         </div>
-        <span class="ncard-time">${fmtAgo(item.minutesAgo||0)}</span>
+        <span class="card-time">${ago}</span>
       </div>
-      <div class="ncard-headline">${esc(item.headline)}</div>
-      <div class="ncard-summary">${esc(item.summary)}</div>
-      <div class="ncard-footer">
-        <span class="ncard-source">${esc(item.source||'')}</span>
-        <div class="ticker-row">${tickers}</div>
+      <div class="card-headline">${escHtml(item.headline)}</div>
+      <div class="card-summary">${escHtml(item.summary)}</div>
+      <div class="card-footer">
+        <span class="card-source">${escHtml(item.source || '')}</span>
+        <div class="card-tickers">${tickers}</div>
       </div>
     </div>`;
   }).join('');
 }
 
-/* ═══════════════════════════════
-   RENDER SENTIMENT
-═══════════════════════════════ */
-function renderSentiment(s) {
-  const colors = { BULLISH:'var(--earn)', BEARISH:'var(--geo)', NEUTRAL:'var(--crypto)' };
-  const overall = s.overall || 'NEUTRAL';
-  const score = Math.max(-5, Math.min(5, s.score||0));
-  const col = colors[overall];
-  const bars = Array.from({length:10},(_,i)=>{
-    // score -5 to +5, map to 0-10 range: neutral=5
-    const threshold = score + 5;
-    const active = i < threshold;
-    return `<div class="gauge-seg" style="background:${active ? col : 'var(--bg4)'}; opacity:${active?0.8+i*0.02:1};"></div>`;
-  }).join('');
-  document.getElementById('sentiment-box').innerHTML = `
-    <div class="sentiment-row">
-      <div class="sentiment-label" style="color:${col};">${overall}</div>
-      <div class="sentiment-score">score ${score>0?'+':''}${score}/5</div>
-    </div>
-    <div class="gauge-bar">${bars}</div>
-    <div class="sentiment-reason">${esc(s.reason||'')}</div>`;
-}
-
-/* ═══════════════════════════════
-   RENDER ALERTS
-═══════════════════════════════ */
 function renderAlerts(alerts) {
   if (!alerts.length) {
-    document.getElementById('alerts-box').innerHTML = '<div style="font-size:12px;color:var(--ink3);padding:4px 0;">No high-impact alerts right now.</div>';
+    document.getElementById('alerts-list').innerHTML = '<div style="color:var(--text3); font-size:12px; padding:4px 0;">No high-impact alerts right now.</div>';
     return;
   }
-  document.getElementById('alerts-box').innerHTML = alerts.map(a => `
-    <div class="alert-row">
-      <div class="adot ${esc(a.level)}"></div>
+  document.getElementById('alerts-list').innerHTML = alerts.map(a => `
+    <div class="alert-item">
+      <div class="alert-dot ${a.level}"></div>
       <div class="alert-text">${a.text}</div>
     </div>`).join('');
 }
 
-/* ═══════════════════════════════
+function renderSentiment(s) {
+  const colors = { BULLISH: 'var(--green)', BEARISH: 'var(--red)', NEUTRAL: 'var(--amber)' };
+  const icons = { BULLISH: '▲', BEARISH: '▼', NEUTRAL: '◆' };
+  const overall = s.overall || 'NEUTRAL';
+  const score = s.score || 0;
+  const bars = Array.from({ length: 10 }, (_, i) => {
+    const active = score >= 0 ? i < score + 5 : i >= score + 5;
+    const isMid = i === 4 || i === 5;
+    return `<div style="flex:1; height:16px; border-radius:2px; background:${active ? colors[overall] : 'var(--bg4)'}; opacity:${isMid ? 1 : 0.6};"></div>`;
+  }).join('');
+
+  document.getElementById('sentiment-box').innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <span style="font-family:var(--mono); font-size:13px; font-weight:500; color:${colors[overall]};">${icons[overall]} ${overall}</span>
+      <span style="font-family:var(--mono); font-size:11px; color:var(--text3);">Score: ${score > 0 ? '+' : ''}${score}</span>
+    </div>
+    <div style="display:flex; gap:3px; margin-bottom:10px;">${bars}</div>
+    <div style="font-size:12px; color:var(--text2); line-height:1.5;">${escHtml(s.reason || '')}</div>`;
+}
+
+/* ─────────────────────────────────────────
    HELPERS
-═══════════════════════════════ */
-function fmtAgo(m) {
-  if (m<1) return 'Just now';
-  if (m<60) return m+'m ago';
-  const h=Math.floor(m/60), r=m%60;
-  return h+'h'+(r>0?' '+r+'m':'')+' ago';
+───────────────────────────────────────── */
+function catLabel(cat) {
+  return { fed: 'FED/RATES', earnings: 'EARNINGS', geopolitical: 'GEO/TARIFFS', crypto: 'CRYPTO/CMDTY' }[cat] || cat.toUpperCase();
 }
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function formatAgo(mins) {
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins + 'm ago';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h + 'h' + (m > 0 ? ' ' + m + 'm' : '') + ' ago';
 }
-function skeletons(n) {
-  return Array.from({length:n},()=>`
-    <div class="sk-card">
-      <div class="sk sk-row" style="width:32%;"></div>
-      <div class="sk sk-row" style="width:90%;height:15px;"></div>
-      <div class="sk sk-row" style="width:70%;"></div>
-      <div class="sk sk-row" style="width:50%;"></div>
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getSkeletons(n) {
+  return Array.from({ length: n }, () => `
+    <div class="skel-card">
+      <div class="skeleton skel-line skel-sm" style="margin-bottom:12px;"></div>
+      <div class="skeleton skel-line skel-xl skel-full"></div>
+      <div class="skeleton skel-line skel-lg" style="margin-top:8px;"></div>
+      <div class="skeleton skel-line skel-md" style="margin-top:8px;"></div>
     </div>`).join('');
 }
 </script>
