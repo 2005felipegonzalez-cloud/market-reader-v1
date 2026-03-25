@@ -253,23 +253,13 @@ body {
 
 <!-- ===== SETUP SCREEN ===== -->
 <div id="setup-screen">
-  <div class="setup-card">
-    <div class="setup-logo">◈ MARKET INTEL</div>
-    <h1>Connect your API key</h1>
-    <p>This dashboard uses the Claude AI API with live web search to scan verified financial sources and surface breaking market-moving news in real time.</p>
-
-    <div class="setup-label">Anthropic API Key</div>
-    <input type="password" class="setup-input" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off" />
-    <div class="setup-help">
-      Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
-      Your key is stored only in your browser's sessionStorage and never sent anywhere except Anthropic's API.
-    </div>
-
-    <button class="setup-btn" onclick="startDashboard()">Launch Dashboard →</button>
-    <div class="setup-err" id="setup-err"></div>
-  </div>
+    <h2><i class="fas fa-search"></i> Live Market News Setup</h2>
+    <p>Get a free key at <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a></p>
+    
+    <input type="password" id="api-key-input" placeholder="Enter Gemini API Key (starts with AIza...)">
+    
+    <button onclick="saveKey()">Connect Free Search</button>
 </div>
-
 <!-- ===== DASHBOARD ===== -->
 <div id="dashboard">
 
