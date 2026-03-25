@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Market Intelligence Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #080a0e;
+  --bg2:      #0f1218;
+  --bg3:      #161b24;
+  --bg4:      #1c2330;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #e8edf5;
+  --text2:    #7a8799;
+  --text3:    #3d4a5c;
+  --green:    #00d47e;
+  --green-bg: rgba(0,212,126,0.08);
+  --red:      #ff4d4d;
+  --red-bg:   rgba(255,77,77,0.08);
+  --amber:    #ffb800;
+  --amber-bg: rgba(255,184,0,0.08);
+  --blue:     #4d9fff;
+  --blue-bg:  rgba(77,159,255,0.08);
+  --purple:   #b57bff;
+  --purple-bg:rgba(181,123,255,0.08);
+  --cyan:     #00d4ff;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── SETUP SCREEN ── */
+#setup-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.setup-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 2.5rem;
+}
+.setup-logo { font-size: 13px; font-family: var(--mono); color: var(--cyan); letter-spacing: 0.15em; margin-bottom: 1.5rem; }
+.setup-card h1 { font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
+.setup-card p { font-size: 14px; color: var(--text2); margin-bottom: 1.75rem; line-height: 1.6; }
+.setup-label { font-size: 11px; font-family: var(--mono); color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.setup-input {
+  width: 100%; padding: 12px 14px; font-size: 14px; font-family: var(--mono);
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--text); outline: none; margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+.setup-input:focus { border-color: var(--cyan); }
+.setup-input::placeholder { color: var(--text3); }
+.setup-help { font-size: 12px; color: var(--text3); margin-bottom: 1.5rem; line-height: 1.5; }
+.setup-help a { color: var(--blue); text-decoration: none; }
+.setup-help a:hover { text-decoration: underline; }
+.setup-btn {
+  width: 100%; padding: 13px; font-size: 14px; font-weight: 600;
+  font-family: var(--sans); background: var(--cyan); color: #001a22;
+  border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.15s;
+}
+.setup-btn:hover { opacity: 0.88; }
+.setup-err { color: var(--red); font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+/* ── MAIN DASHBOARD ── */
+#dashboard { display: none; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.5rem; height: 56px;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-left { display: flex; align-items: center; gap: 1.5rem; }
+.logo-text { font-family: var(--mono); font-size: 13px; color: var(--cyan); letter-spacing: 0.12em; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 6px; animation: blink 1.8s ease-in-out infinite; }
+.live-label { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: 0.08em; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.timer-label { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.timer-val { font-family: var(--mono); font-size: 11px; color: var(--text2); min-width: 28px; }
+
+.btn-icon {
+  width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  background: var(--bg3); border: 1px solid var(--border2); cursor: pointer;
+  color: var(--text2); font-size: 14px; transition: all 0.15s;
+}
+.btn-icon:hover { background: var(--bg4); color: var(--text); }
+.btn-icon.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-refresh {
+  display: flex; align-items: center; gap: 6px; padding: 0 14px; height: 34px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text2);
+  transition: all 0.15s; font-family: var(--sans);
+}
+.btn-refresh:hover { background: var(--bg4); color: var(--text); border-color: var(--cyan); }
+.btn-refresh .icon { font-size: 13px; }
+
+/* ── CATEGORY FILTER BAR ── */
+.filter-bar {
+  display: flex; align-items: center; gap: 6px; padding: 12px 1.5rem;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-chip {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border-radius: 20px; border: 1px solid var(--border2); background: transparent;
+  font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  color: var(--text2); transition: all 0.15s; font-family: var(--sans);
+}
+.filter-chip:hover { background: var(--bg3); color: var(--text); }
+.filter-chip.active { color: var(--text); border-color: transparent; }
+.filter-chip[data-cat="fed"].active         { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: rgba(0,212,255,0.25); }
+.filter-chip[data-cat="earnings"].active    { background: var(--green-bg);   color: var(--green); border-color: rgba(0,212,126,0.25); }
+.filter-chip[data-cat="geopolitical"].active { background: var(--red-bg);    color: var(--red);  border-color: rgba(255,77,77,0.25); }
+.filter-chip[data-cat="crypto"].active      { background: var(--amber-bg);   color: var(--amber); border-color: rgba(255,184,0,0.25); }
+.filter-chip[data-cat="all"].active         { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+
+/* ── MAIN CONTENT GRID ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 0;
+  min-height: calc(100vh - 56px - 49px);
+}
+@media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+.news-column { padding: 1.5rem; border-right: 1px solid var(--border); }
+.sidebar { padding: 1.5rem; }
+
+/* ── SECTION HEADERS ── */
+.section-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.section-title { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; }
+.section-count { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+
+/* ── NEWS CARDS ── */
+.news-list { display: flex; flex-direction: column; gap: 1px; }
+
+.news-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 8px;
+  transition: border-color 0.15s, background 0.15s;
+  cursor: default; position: relative; overflow: hidden;
+}
+.news-card:hover { border-color: var(--border2); background: var(--bg3); }
+.news-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+}
+.news-card.fed::before       { background: var(--cyan); }
+.news-card.earnings::before  { background: var(--green); }
+.news-card.geopolitical::before { background: var(--red); }
+.news-card.crypto::before    { background: var(--amber); }
+
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cat-badge {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 4px; font-weight: 500;
+}
+.cat-badge.fed         { background: rgba(0,212,255,0.12); color: var(--cyan); }
+.cat-badge.earnings    { background: var(--green-bg); color: var(--green); }
+.cat-badge.geopolitical{ background: var(--red-bg); color: var(--red); }
+.cat-badge.crypto      { background: var(--amber-bg); color: var(--amber); }
+
+.impact-badge {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 4px;
+}
+.impact-HIGH   { background: rgba(255,77,77,0.15); color: var(--red); }
+.impact-MEDIUM { background: rgba(255,184,0,0.12); color: var(--amber); }
+.impact-LOW    { background: rgba(122,135,153,0.12); color: var(--text2); }
+
+.card-time { font-family: var(--mono); font-size: 10px; color: var(--text3); white-space: nowrap; }
+.card-headline { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 6px; }
+.card-summary { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 8px; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; }
+.card-source { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+.card-tickers { display: flex; gap: 4px; flex-wrap: wrap; }
+.ticker-chip {
+  font-family: var(--mono); font-size: 10px; color: var(--blue); background: var(--blue-bg);
+  padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(77,159,255,0.15);
+}
+
+/* ── SKELETON LOADER ── */
+.skeleton { animation: shimmer 1.5s ease-in-out infinite; border-radius: 6px; background: var(--bg3); }
+@keyframes shimmer { 0%,100%{opacity:0.4;} 50%{opacity:0.8;} }
+.skel-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 8px; }
+.skel-line { height: 12px; margin-bottom: 8px; }
+.skel-lg { width: 70%; }
+.skel-md { width: 50%; }
+.skel-sm { width: 30%; }
+.skel-full { width: 100%; }
+.skel-xl { height: 16px; }
+
+/* ── SIDEBAR WIDGETS ── */
+.widget { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.widget-title { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.875rem; }
+
+.alert-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.alert-item:last-child { border-bottom: none; padding-bottom: 0; }
+.alert-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.alert-dot.high   { background: var(--red); }
+.alert-dot.medium { background: var(--amber); }
+.alert-dot.low    { background: var(--text3); }
+.alert-text { color: var(--text2); line-height: 1.4; }
+.alert-text strong { color: var(--text); font-weight: 500; }
+
+.sources-list { display: flex; flex-direction: column; gap: 6px; }
+.source-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+.source-name { color: var(--text2); font-family: var(--mono); }
+.source-status { font-family: var(--mono); font-size: 10px; color: var(--green); }
+
+.last-update { font-family: var(--mono); font-size: 11px; color: var(--text3); text-align: center; padding-top: 0.5rem; }
+
+/* ── EMPTY / ERROR STATE ── */
+.empty-state { text-align: center; padding: 3rem 1rem; }
+.empty-icon { font-size: 32px; margin-bottom: 1rem; opacity: 0.4; }
+.empty-title { font-size: 15px; font-weight: 500; color: var(--text2); margin-bottom: 0.5rem; }
+.empty-sub { font-size: 13px; color: var(--text3); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">◈ MARKET INTEL</div>
+    <h1>Connect your API key</h1>
+    <p>This dashboard uses the Claude AI API with live web search to scan verified financial sources and surface breaking market-moving news in real time.</p>
+
+    <div class="setup-label">Anthropic API Key</div>
+    <input type="password" class="setup-input" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off" />
+    <div class="setup-help">
+      Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+      Your key is stored only in your browser's sessionStorage and never sent anywhere except Anthropic's API.
+    </div>
+
+    <button class="setup-btn" onclick="startDashboard()">Launch Dashboard →</button>
+    <div class="setup-err" id="setup-err"></div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="logo-text">◈ MARKET INTEL</span>
+      <span><span class="live-dot"></span><span class="live-label" id="live-label">LIVE</span></span>
+    </div>
+    <div class="topbar-right">
+      <span class="timer-label">Next refresh</span>
+      <span class="timer-val" id="countdown-val">5:00</span>
+      <button class="btn-refresh" onclick="fetchAllNews(true)" id="refresh-btn">
+        <span class="icon" id="refresh-icon">↻</span> Refresh now
+      </button>
+      <button class="btn-icon" onclick="clearKey()" title="Change API key">⚙</button>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <button class="filter-chip active" data-cat="all" onclick="setFilter('all')">All news</button>
+    <button class="filter-chip" data-cat="fed" onclick="setFilter('fed')">🏦 Fed / Rates</button>
+    <button class="filter-chip" data-cat="earnings" onclick="setFilter('earnings')">📊 Earnings</button>
+    <button class="filter-chip" data-cat="geopolitical" onclick="setFilter('geopolitical')">🌐 Geopolitical / Tariffs</button>
+    <button class="filter-chip" data-cat="crypto" onclick="setFilter('crypto')">₿ Crypto & Commodities</button>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- News feed -->
+    <div class="news-column">
+      <div class="section-hdr">
+        <span class="section-title">Breaking market news</span>
+        <span class="section-count" id="news-count"></span>
+      </div>
+      <div id="news-list">
+        <!-- Skeleton loaders shown on first load -->
+        <div class="skel-card">
+          <div class="skeleton skel-line skel-sm" style="margin-bottom:12px;"></div>
+          <div class="skeleton skel-line skel-xl skel-full"></div>
+          <div class="skeleton skel-line skel-lg" style="margin-top:6px;"></div>
+          <div class="skeleton skel-line skel-md" style="margin-top:6px;"></div>
+        </div>
+        <div class="skel-card">
+          <div class="skeleton skel-line skel-sm" style="margin-bottom:12px;"></div>
+          <div class="skeleton skel-line skel-xl skel-full"></div>
+          <div class="skeleton skel-line skel-lg" style="margin-top:6px;"></div>
+        </div>
+        <div class="skel-card">
+          <div class="skeleton skel-line skel-sm" style="margin-bottom:12px;"></div>
+          <div class="skeleton skel-line skel-xl skel-lg"></div>
+          <div class="skeleton skel-line skel-full" style="margin-top:6px;"></div>
+          <div class="skeleton skel-line skel-md" style="margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <!-- High-impact alerts -->
+      <div class="widget">
+        <div class="widget-title">⚡ High-impact alerts</div>
+        <div id="alerts-list">
+          <div class="skeleton skel-line skel-full" style="margin-bottom:8px;"></div>
+          <div class="skeleton skel-line skel-lg" style="margin-bottom:8px;"></div>
+          <div class="skeleton skel-line skel-md"></div>
+        </div>
+      </div>
+
+      <!-- Verified sources -->
+      <div class="widget">
+        <div class="widget-title">✓ Verified sources scanned</div>
+        <div class="sources-list">
+          <div class="source-row"><span class="source-name">Federal Reserve</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">SEC EDGAR</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">Reuters</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">Bloomberg</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">WSJ Markets</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">CNBC</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">US Treasury</span><span class="source-status">● LIVE</span></div>
+          <div class="source-row"><span class="source-name">Earnings Whispers</span><span class="source-status">● LIVE</span></div>
+        </div>
+      </div>
+
+      <!-- Market sentiment -->
+      <div class="widget">
+        <div class="widget-title">◎ AI sentiment</div>
+        <div id="sentiment-box">
+          <div class="skeleton skel-line skel-full" style="margin-bottom:8px;"></div>
+          <div class="skeleton skel-line skel-lg"></div>
+        </div>
+      </div>
+
+      <div class="last-update" id="last-update-label">Fetching latest news...</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   CONFIG & STATE
+───────────────────────────────────────── */
+const REFRESH_INTERVAL = 5 * 60; // seconds
+let apiKey = '';
+let allNewsItems = [];
+let currentFilter = 'all';
+let countdownSecs = REFRESH_INTERVAL;
+let countdownTimer = null;
+let refreshTimer = null;
+
+/* ─────────────────────────────────────────
+   SETUP
+───────────────────────────────────────── */
+function startDashboard() {
+  const key = document.getElementById('api-key-input').value.trim();
+  const err = document.getElementById('setup-err');
+  if (!key || !key.startsWith('sk-ant-')) {
+    err.textContent = 'Please enter a valid Anthropic API key (starts with sk-ant-).';
+    return;
+  }
+  apiKey = key;
+  sessionStorage.setItem('mid_key', key);
+  err.textContent = '';
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  fetchAllNews(true);
+  startCountdown();
+}
+
+function clearKey() {
+  sessionStorage.removeItem('mid_key');
+  apiKey = '';
+  clearInterval(countdownTimer);
+  clearTimeout(refreshTimer);
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+}
+
+// Auto-restore key from session
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('mid_key');
+  if (saved) {
+    document.getElementById('api-key-input').value = saved;
+    apiKey = saved;
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    fetchAllNews(true);
+    startCountdown();
+  }
+});
+
+/* ─────────────────────────────────────────
+   COUNTDOWN TIMER
+───────────────────────────────────────── */
+function startCountdown() {
+  countdownSecs = REFRESH_INTERVAL;
+  clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
+    countdownSecs--;
+    const m = Math.floor(countdownSecs / 60);
+    const s = countdownSecs % 60;
+    document.getElementById('countdown-val').textContent = m + ':' + String(s).padStart(2, '0');
+    if (countdownSecs <= 0) {
+      fetchAllNews(false);
+      countdownSecs = REFRESH_INTERVAL;
+    }
+  }, 1000);
+}
+
+/* ─────────────────────────────────────────
+   FILTER
+───────────────────────────────────────── */
+function setFilter(cat) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
+  renderNews();
+}
+
+/* ─────────────────────────────────────────
+   FETCH NEWS via Claude API + web_search
+───────────────────────────────────────── */
+async function fetchAllNews(isManual) {
+  const refreshBtn = document.getElementById('refresh-btn');
+  const refreshIcon = document.getElementById('refresh-icon');
+  const liveLabel = document.getElementById('live-label');
+  refreshBtn.disabled = true;
+  refreshIcon.classList.add('spinning');
+  liveLabel.textContent = 'UPDATING';
+  liveLabel.style.color = 'var(--amber)';
+
+  if (isManual) {
+    document.getElementById('news-list').innerHTML = getSkeletons(4);
+    document.getElementById('alerts-list').innerHTML = '<div class="skeleton skel-line skel-full" style="margin-bottom:8px;"></div><div class="skeleton skel-line skel-lg"></div>';
+    document.getElementById('sentiment-box').innerHTML = '<div class="skeleton skel-line skel-full" style="margin-bottom:8px;"></div><div class="skeleton skel-line skel-md"></div>';
+  }
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
+
+  const prompt = `Today is ${dateStr} at ${timeStr}.
+
+Use web search to find the LATEST breaking news from the last 6 hours that would significantly impact the US stock market.
+
+Search for news in all 4 of these categories:
+1. Fed / Interest Rates — Federal Reserve statements, FOMC decisions, inflation data (CPI/PCE), jobs reports, Fed speeches
+2. Earnings & Guidance — Major company earnings beats/misses, revenue guidance changes, analyst upgrades/downgrades
+3. Geopolitical / Tariffs — Trade wars, sanctions, tariff announcements, geopolitical conflicts affecting markets
+4. Crypto & Commodities — Bitcoin/major crypto moves, oil price swings, gold, supply disruptions
+
+Respond ONLY with a valid JSON object. No markdown, no code fences, no preamble. Format:
+{
+  "items": [
+    {
+      "id": "unique_id_1",
+      "category": "fed",
+      "impact": "HIGH",
+      "headline": "Short punchy headline under 12 words",
+      "summary": "2-3 sentence summary of what happened and why it matters for stocks.",
+      "source": "Source Name",
+      "tickers": ["SPY", "TLT"],
+      "minutesAgo": 45
+    }
+  ],
+  "sentiment": {
+    "overall": "BEARISH",
+    "score": -2,
+    "reason": "One sentence explaining overall market mood based on today's news."
+  },
+  "alerts": [
+    { "level": "high", "text": "Bold headline <strong>ticker/entity</strong> brief impact" }
+  ]
+}
+
+Rules:
+- Include 8-12 items total across all 4 categories
+- impact must be HIGH, MEDIUM, or LOW
+- category must be exactly: fed, earnings, geopolitical, or crypto
+- tickers: relevant stock symbols affected (2-4 max), empty array if none
+- sentiment.overall: BULLISH, BEARISH, or NEUTRAL
+- sentiment.score: -5 to +5
+- alerts: 3-5 most urgent items only
+- minutesAgo: estimated minutes since news broke (use 0-360)
+- Only include REAL news from today. If nothing major in a category, include 1-2 items marked LOW impact.
+- Source must be a real publication: Reuters, Bloomberg, WSJ, CNBC, Federal Reserve, SEC, AP, FT, etc.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.error?.message || 'API error ' + res.status);
+    }
+
+    const data = await res.json();
+
+    // Extract text from response
+    let rawText = '';
+    for (const block of data.content) {
+      if (block.type === 'text') rawText += block.text;
+    }
+
+    // Parse JSON
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON found in response');
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    allNewsItems = parsed.items || [];
+    renderNews();
+    renderAlerts(parsed.alerts || []);
+    renderSentiment(parsed.sentiment || {});
+
+    const updateTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('last-update-label').textContent = 'Last updated: ' + updateTime;
+    document.getElementById('news-count').textContent = allNewsItems.length + ' stories';
+
+    // Reset countdown
+    countdownSecs = REFRESH_INTERVAL;
+
+  } catch (err) {
+    console.error('Fetch error:', err);
+    document.getElementById('news-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠</div>
+        <div class="empty-title">Could not fetch news</div>
+        <div class="empty-sub">${err.message}<br><br>Check your API key and try again.</div>
+      </div>`;
+    document.getElementById('alerts-list').innerHTML = '<div style="color:var(--text3); font-size:12px;">Unable to load.</div>';
+  }
+
+  refreshBtn.disabled = false;
+  refreshIcon.classList.remove('spinning');
+  liveLabel.textContent = 'LIVE';
+  liveLabel.style.color = 'var(--green)';
+}
+
+/* ─────────────────────────────────────────
+   RENDER
+───────────────────────────────────────── */
+function renderNews() {
+  const filtered = currentFilter === 'all'
+    ? allNewsItems
+    : allNewsItems.filter(i => i.category === currentFilter);
+
+  document.getElementById('news-count').textContent = filtered.length + ' stories';
+
+  if (!filtered.length) {
+    document.getElementById('news-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">◎</div>
+        <div class="empty-title">No stories in this category</div>
+        <div class="empty-sub">Try another filter or refresh to fetch new data.</div>
+      </div>`;
+    return;
+  }
+
+  // Sort by impact then recency
+  const order = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+  const sorted = [...filtered].sort((a, b) => {
+    if (order[a.impact] !== order[b.impact]) return order[a.impact] - order[b.impact];
+    return (a.minutesAgo || 0) - (b.minutesAgo || 0);
+  });
+
+  document.getElementById('news-list').innerHTML = sorted.map(item => {
+    const tickers = (item.tickers || []).map(t => `<span class="ticker-chip">${t}</span>`).join('');
+    const ago = formatAgo(item.minutesAgo || 0);
+    return `
+    <div class="news-card ${item.category}">
+      <div class="card-top">
+        <div class="card-meta">
+          <span class="cat-badge ${item.category}">${catLabel(item.category)}</span>
+          <span class="impact-badge impact-${item.impact}">${item.impact}</span>
+        </div>
+        <span class="card-time">${ago}</span>
+      </div>
+      <div class="card-headline">${escHtml(item.headline)}</div>
+      <div class="card-summary">${escHtml(item.summary)}</div>
+      <div class="card-footer">
+        <span class="card-source">${escHtml(item.source || '')}</span>
+        <div class="card-tickers">${tickers}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAlerts(alerts) {
+  if (!alerts.length) {
+    document.getElementById('alerts-list').innerHTML = '<div style="color:var(--text3); font-size:12px; padding:4px 0;">No high-impact alerts right now.</div>';
+    return;
+  }
+  document.getElementById('alerts-list').innerHTML = alerts.map(a => `
+    <div class="alert-item">
+      <div class="alert-dot ${a.level}"></div>
+      <div class="alert-text">${a.text}</div>
+    </div>`).join('');
+}
+
+function renderSentiment(s) {
+  const colors = { BULLISH: 'var(--green)', BEARISH: 'var(--red)', NEUTRAL: 'var(--amber)' };
+  const icons = { BULLISH: '▲', BEARISH: '▼', NEUTRAL: '◆' };
+  const overall = s.overall || 'NEUTRAL';
+  const score = s.score || 0;
+  const bars = Array.from({ length: 10 }, (_, i) => {
+    const active = score >= 0 ? i < score + 5 : i >= score + 5;
+    const isMid = i === 4 || i === 5;
+    return `<div style="flex:1; height:16px; border-radius:2px; background:${active ? colors[overall] : 'var(--bg4)'}; opacity:${isMid ? 1 : 0.6};"></div>`;
+  }).join('');
+
+  document.getElementById('sentiment-box').innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <span style="font-family:var(--mono); font-size:13px; font-weight:500; color:${colors[overall]};">${icons[overall]} ${overall}</span>
+      <span style="font-family:var(--mono); font-size:11px; color:var(--text3);">Score: ${score > 0 ? '+' : ''}${score}</span>
+    </div>
+    <div style="display:flex; gap:3px; margin-bottom:10px;">${bars}</div>
+    <div style="font-size:12px; color:var(--text2); line-height:1.5;">${escHtml(s.reason || '')}</div>`;
+}
+
+/* ─────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────── */
+function catLabel(cat) {
+  return { fed: 'FED/RATES', earnings: 'EARNINGS', geopolitical: 'GEO/TARIFFS', crypto: 'CRYPTO/CMDTY' }[cat] || cat.toUpperCase();
+}
+
+function formatAgo(mins) {
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins + 'm ago';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h + 'h' + (m > 0 ? ' ' + m + 'm' : '') + ' ago';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getSkeletons(n) {
+  return Array.from({ length: n }, () => `
+    <div class="skel-card">
+      <div class="skeleton skel-line skel-sm" style="margin-bottom:12px;"></div>
+      <div class="skeleton skel-line skel-xl skel-full"></div>
+      <div class="skeleton skel-line skel-lg" style="margin-top:8px;"></div>
+      <div class="skeleton skel-line skel-md" style="margin-top:8px;"></div>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
